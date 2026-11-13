@@ -43,22 +43,58 @@ npx --yes serve -l 8080
 
 Open http://localhost:8080 — paths `/privacy/` and `/terms/` work via folder `index.html`.
 
-## Cloudflare Pages setup
+## Cloudflare Pages deploy (GitHub Actions + API token)
 
-1. Cloudflare Dashboard → **Workers & Pages** → **Create** → **Pages** → Connect to Git.
-2. Select org repo `cowoka-app/getcowoka.com`.
-3. Build settings:
-   - **Framework preset:** None
-   - **Build command:** *(leave empty)*
-   - **Build output directory:** `/` (repo root)
-4. Save and deploy. Note the `*.pages.dev` preview URL.
-5. **Custom domains** → add `getcowoka.com` (and `www` if desired).
-6. At your DNS host (or Cloudflare DNS if the domain is on CF):
-   - Apex: CNAME flattening / ALIAS to the Pages target Cloudflare shows, **or** use Cloudflare as nameserver and add the domain in Pages (recommended).
-   - `www` → CNAME to `getcowoka.com` or the Pages hostname; optionally redirect www → apex in Pages.
-7. Wait for HTTPS certificate (automatic on Pages).
+**Do not** install the **Cloudflare Workers & Pages** GitHub App on this repo. That install asks for org/repo admin + write so Cloudflare can pull source, open deployments, and post checks. We push artifacts instead: GitHub Actions uploads the static tree with a least-privilege Cloudflare API token. Cloudflare never gets GitHub admin.
 
-Until DNS is live, the draft is still valid in-repo and on `*.pages.dev`; do not auto-close store/privacy issues until https://getcowoka.com/privacy/ resolves.
+### 1. Create an empty Pages project (once)
+
+Direct Upload needs a project name before the first CI deploy:
+
+1. Cloudflare Dashboard → **Workers & Pages** → **Create** → **Pages**.
+2. Choose **Upload assets** / Direct Upload (not “Connect to Git”).
+3. Project name: **`getcowoka-com`** (must match the workflow).
+4. You can skip uploading files in the UI; the first Actions run will deploy.
+
+### 2. Create a Cloudflare API token (least privilege)
+
+1. [API Tokens](https://dash.cloudflare.com/profile/api-tokens) → **Create Token** → **Custom token**.
+2. Permissions (exact dashboard labels):
+
+   | Scope | Permission | Access |
+   |-------|------------|--------|
+   | **Account** | **Cloudflare Pages** | **Edit** |
+   | **Account** | **Account Settings** | **Read** *(recommended)* |
+
+   Official Pages CI docs require **Cloudflare Pages → Edit**. **Account Settings → Read** is optional for the deploy API itself when `accountId` is passed as a secret, but Wrangler sometimes needs it for account lookup — include it unless you verify deploy works without it.
+3. **Account Resources**: include only the Cloudflare account that owns the Pages project.
+4. Create token → copy once.
+
+Find **Account ID**: any zone Overview → API section, or the hex segment in `dash.cloudflare.com/<account_id>/…`.
+
+### 3. GitHub repo secrets
+
+Repo → **Settings** → **Secrets and variables** → **Actions**:
+
+| Secret | Value |
+|--------|--------|
+| `CLOUDFLARE_API_TOKEN` | Token from step 2 |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
+
+Project name is hardcoded in `.github/workflows/deploy-pages.yml` as `getcowoka-com` (not a secret).
+
+### 4. Deploy
+
+Push to `main` (or run **Actions** → **Deploy to Cloudflare Pages** → **Run workflow**). No build step — the workflow deploys the repo root with `wrangler pages deploy . --project-name=getcowoka-com`.
+
+### 5. Custom domain + DNS (human)
+
+In the Pages project → **Custom domains** → add `getcowoka.com` (and `www` if desired). At your DNS host (or Cloudflare DNS):
+
+- Apex: CNAME flattening / ALIAS to the Pages target Cloudflare shows, **or** use Cloudflare as nameserver and attach the domain in Pages (recommended).
+- `www` → CNAME to `getcowoka.com` or the Pages hostname; optionally redirect www → apex in Pages.
+
+Wait for HTTPS (automatic on Pages). Until DNS is live, the draft is still valid in-repo and on `*.pages.dev`; do not auto-close store/privacy issues until https://getcowoka.com/privacy/ resolves.
 
 ## Waitlist (not implemented)
 
