@@ -134,7 +134,7 @@ Repo → **Settings** → **Secrets and variables** → **Actions** (repository 
 
 ### 4. Deploy (manual only)
 
-Deploy does **not** run on push. Use **Actions** → **Deploy to Cloudflare Pages** → **Run workflow** when you want a publish. That stages the tree without `drafts/`, ensures project `getcowoka-com` exists, then:
+Deploy does **not** run on push. Use **Actions** → **Deploy to Cloudflare Pages** → **Run workflow** when you want a publish. The workflow **allowlists** only `index.html`, `assets/css/site.css`, `_headers`, and `_redirects` into `_publish/` (no `.git`, `.github`, `drafts/`, README, or lockfiles), ensures project `getcowoka-com` exists, then:
 
 `wrangler pages deploy _publish --project-name=getcowoka-com --branch=main`
 

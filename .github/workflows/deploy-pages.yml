@@ -21,19 +21,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      # Publish tree excludes drafts/ (unreviewed privacy & terms) and tooling.
+      # Allowlist only — never upload the git repo, drafts, README, or tooling.
+      # (Deploying "." also risks picking up package.json written by wrangler-action.)
       - name: Stage publish tree
         run: |
-          mkdir -p _publish
-          rsync -a \
-            --exclude '.git/' \
-            --exclude '.github/' \
-            --exclude '.cursor/' \
-            --exclude 'drafts/' \
-            --exclude '_publish/' \
-            --exclude 'README.md' \
-            --exclude '.gitignore' \
-            ./ _publish/
+          rm -rf _publish
+          mkdir -p _publish/assets/css
+          cp index.html _headers _redirects _publish/
+          cp assets/css/site.css _publish/assets/css/
+          echo "Publish tree:"
+          find _publish -type f | sort
 
       # Wrangler no longer auto-creates Pages projects on deploy.
       # First run creates getcowoka-com; later runs fail "already exists" — ignore that.
