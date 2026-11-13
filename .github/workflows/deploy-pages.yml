@@ -1,11 +1,9 @@
 # Deploy static site to Cloudflare Pages via Direct Upload (API token).
 # Do NOT install the Cloudflare Workers & Pages GitHub App for this repo.
+# Manual only — avoids burning Actions minutes on every push to main.
 name: Deploy to Cloudflare Pages
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
 
 concurrency:
@@ -23,6 +21,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      # Publish tree excludes drafts/ (unreviewed privacy & terms) and tooling.
+      - name: Stage publish tree
+        run: |
+          mkdir -p _publish
+          rsync -a \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude '.cursor/' \
+            --exclude 'drafts/' \
+            --exclude '_publish/' \
+            --exclude 'README.md' \
+            --exclude '.gitignore' \
+            ./ _publish/
+
       # Wrangler no longer auto-creates Pages projects on deploy.
       # First run creates getcowoka-com; later runs fail "already exists" — ignore that.
       - name: Ensure Pages project exists
@@ -38,8 +50,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          # Static HTML at repo root — no build step.
+          # Staged tree — no build step.
           # Project name must be getcowoka-com (CF disallows dots). Public URL is custom domain getcowoka.com.
-          command: pages deploy . --project-name=getcowoka-com --branch=main
-          # Optional: create a GitHub Deployment record for this run.
+          command: pages deploy _publish --project-name=getcowoka-com --branch=main
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}

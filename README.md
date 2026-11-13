@@ -1,6 +1,6 @@
 # getcowoka.com
 
-Marketing site for **Cowoka** — coming soon, privacy, and terms.
+Marketing site for **Cowoka** — coming-soon teaser (privacy & terms drafts stay unpublished until reviewed).
 
 | Domain | Role |
 |--------|------|
@@ -9,11 +9,10 @@ Marketing site for **Cowoka** — coming soon, privacy, and terms.
 
 ## Canonical URLs
 
-- Home: https://getcowoka.com/
-- Privacy: https://getcowoka.com/privacy/
-- Terms: https://getcowoka.com/terms/
+- Home (live): https://getcowoka.com/
+- Privacy / Terms: **not public yet** — drafts under `drafts/`; `/privacy/` and `/terms/` redirect home until review.
 
-App Account / About links should open **https://getcowoka.com/privacy/** (not `cowoka.app/privacy`).
+When legal copy is approved, move `drafts/privacy` and `drafts/terms` back to the site root, restore nav links, and redeploy. Then app Account / About can use **https://getcowoka.com/privacy/** (not `cowoka.app/privacy`).
 
 ## Stack
 
@@ -21,12 +20,13 @@ Plain static HTML + CSS. No build step. Hosted on **Cloudflare Pages**.
 
 ```
 /
-├── index.html           # Coming soon
-├── privacy/index.html
-├── terms/index.html
+├── index.html              # Coming soon (published)
 ├── assets/css/site.css
-├── _redirects           # trailing-slash aliases
-└── _headers
+├── _redirects              # /privacy /terms → /
+├── _headers
+└── drafts/                 # NOT published — privacy & terms until reviewed
+    ├── privacy/index.html
+    └── terms/index.html
 ```
 
 ## Local preview
@@ -41,7 +41,7 @@ python3 -m http.server 8080
 npx --yes serve -l 8080
 ```
 
-Open http://localhost:8080 — paths `/privacy/` and `/terms/` work via folder `index.html`.
+Open http://localhost:8080 for the teaser. Draft legal pages are at `/drafts/privacy/` and `/drafts/terms/` locally only (CI excludes `drafts/` from the Cloudflare upload).
 
 ## Cloudflare Pages deploy (GitHub Actions + API token)
 
@@ -132,11 +132,11 @@ Repo → **Settings** → **Secrets and variables** → **Actions** (repository 
 
 `--project-name=getcowoka-com` is hardcoded in `.github/workflows/deploy-pages.yml` (not a secret).
 
-### 4. Deploy
+### 4. Deploy (manual only)
 
-Push to `main` (or **Actions** → **Deploy to Cloudflare Pages** → **Run workflow**). No build step — ensures project `getcowoka-com` exists, then:
+Deploy does **not** run on push. Use **Actions** → **Deploy to Cloudflare Pages** → **Run workflow** when you want a publish. That stages the tree without `drafts/`, ensures project `getcowoka-com` exists, then:
 
-`wrangler pages deploy . --project-name=getcowoka-com --branch=main`
+`wrangler pages deploy _publish --project-name=getcowoka-com --branch=main`
 
 ### 5. Custom domain + DNS (human)
 
@@ -165,7 +165,7 @@ Do not collect emails until spam protection (Turnstile) and a privacy blurb on t
 
 ## Legal copy
 
-Privacy and terms are **draft / not attorney-reviewed**. Grounded in current app concepts (accounts, venues, sessions, location, activity, delete account). Owner must review before store launch.
+Privacy and terms live under **`drafts/`** and are **not** uploaded to Pages. They are **draft / not attorney-reviewed**. Grounded in current app concepts (accounts, venues, sessions, location, activity, delete account). Owner must review before publishing or store launch.
 
 ## Related
 
