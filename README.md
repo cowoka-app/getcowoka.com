@@ -58,17 +58,54 @@ Direct Upload needs a project name before the first CI deploy:
 
 ### 2. Create a Cloudflare API token (least privilege)
 
-1. [API Tokens](https://dash.cloudflare.com/profile/api-tokens) → **Create Token** → **Custom token**.
-2. Permissions (exact dashboard labels):
+Pages Direct Upload (`wrangler pages deploy`) calls **account-level** APIs
+(`/accounts/<id>/pages/projects/...`), not zone/DNS APIs. A token limited to the
+**getcowoka.com** zone cannot authorize that route and typically fails with
+**Authentication error [code: 10000]** — even if DNS for that domain is in the same account.
 
-   | Scope | Permission | Access |
-   |-------|------------|--------|
-   | **Account** | **Cloudflare Pages** | **Edit** |
-   | **Account** | **Account Settings** | **Read** *(recommended)* |
+**Preferred token type:** **Account API token** (service principal; survives user
+leaving). Official Pages docs use this path; Pages is compatible with account-owned
+tokens. **User API tokens** also work if you prefer creating them under your profile.
 
-   Official Pages CI docs require **Cloudflare Pages → Edit**. **Account Settings → Read** is optional for the deploy API itself when `accountId` is passed as a secret, but Wrangler sometimes needs it for account lookup — include it unless you verify deploy works without it.
-3. **Account Resources**: include only the Cloudflare account that owns the Pages project.
-4. Create token → copy once.
+| | Account API token (preferred) | User API token (also OK) |
+|--|------------------------------|---------------------------|
+| Where | Dashboard → **Manage account** → **Account API tokens** | [My Profile → API Tokens](https://dash.cloudflare.com/profile/api-tokens) |
+| Prefix | often `cfat_…` | often `cfut_…` |
+| Who can create | Super Admin or member with API Token Provisioning | Any member (limited to their own permissions) |
+
+#### Permissions (only this)
+
+| Scope | Permission (dashboard label) | Access |
+|-------|------------------------------|--------|
+| **Account** | **Cloudflare Pages** | **Edit** |
+
+That is the same permission Cloudflare’s [Direct Upload CI guide](https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/) and [Pages REST API](https://developers.cloudflare.com/pages/configuration/api/) ask for (`Pages Write` in API docs).
+
+**Do not add** (and you do **not** need them for this workflow):
+
+| Avoid | Why |
+|-------|-----|
+| **Account Settings → Edit** | Far too broad (membership / account config). Refuse this. |
+| **Account Settings → Read** | Not required here: the Actions workflow already passes `CLOUDFLARE_ACCOUNT_ID`, so Wrangler does not need to list/lookup accounts. Some dashboards only show **Edit** for Account Settings — skip the whole permission. |
+| **Account Custom Pages** Read/Edit | Different product (Error Pages), not Cloudflare Pages. |
+| Any **Zone** / DNS / Workers Routes permissions | Not used by `pages deploy`. |
+| Restricting the token to the **getcowoka.com** domain / one zone | Zone scoping does not limit Pages projects; it often blocks the account Pages API instead. |
+
+#### Resources
+
+1. **Account resources:** include **only** the Cloudflare account that owns the Pages project `getcowoka-com`.
+2. **Zone resources:** leave unset / do not add a zone include. You do **not** need “All zones” and you must **not** pin the policy to `getcowoka.com` for deploy.
+3. Create token → copy once → put it in the GitHub secret (below).
+
+#### Quick verify (optional)
+
+```bash
+curl -sS -o /dev/null -w "%{http_code}\n" \
+  -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+  "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/getcowoka-com"
+```
+
+Expect **200**. **401/403** with auth errors → wrong permission name, zone-restricted policy, or wrong account id.
 
 Find **Account ID**: any zone Overview → API section, or the hex segment in `dash.cloudflare.com/<account_id>/…`.
 
