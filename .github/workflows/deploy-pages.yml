@@ -29,6 +29,7 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           # Static HTML at repo root — no build step.
+          # Project name must be getcowoka-com (CF disallows dots). Public URL is custom domain getcowoka.com.
           command: pages deploy . --project-name=getcowoka-com
           # Optional: create a GitHub Deployment record for this run.
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}

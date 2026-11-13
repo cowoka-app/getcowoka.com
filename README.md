@@ -47,30 +47,42 @@ Open http://localhost:8080 — paths `/privacy/` and `/terms/` work via folder `
 
 **Do not** install the **Cloudflare Workers & Pages** GitHub App on this repo. That install asks for org/repo admin + write so Cloudflare can pull source, open deployments, and post checks. We push artifacts instead: GitHub Actions uploads the static tree with a least-privilege Cloudflare API token. Cloudflare never gets GitHub admin.
 
-### 1. Create an empty Pages project (once)
+### Project name vs domain (important)
 
-Direct Upload needs a project name before the first CI deploy:
+| What | Value | Where you see it |
+|------|-------|------------------|
+| **Pages project name** | `getcowoka-com` | Workers & Pages project list; Wrangler `--project-name` |
+| **Custom domain** (public URL) | `getcowoka.com` | Pages → Custom domains; browser |
 
-1. Cloudflare Dashboard → **Workers & Pages** → **Create** → **Pages**.
-2. Choose **Upload assets** / Direct Upload (not “Connect to Git”).
-3. Project name: **`getcowoka-com`** (must match the workflow).
-4. You can skip uploading files in the UI; the first Actions run will deploy.
+Cloudflare **does not allow dots** in Pages project names (only lowercase letters, digits, hyphens). So the project cannot be named `getcowoka.com`. The workflow uses `getcowoka-com`; you then attach **custom domain** `getcowoka.com` to that project. Seeing `getcowoka.com` in DNS / Custom domains does **not** mean the project is named that.
+
+### 1. Pages “project” / “application” (once)
+
+Cloudflare’s UI often says **Create application** — that is just a **Pages project**, not a separate app product. Name it **`getcowoka-com`** (must match the workflow; dots are invalid).
+
+**Easiest: skip the dashboard.** With a valid Pages Edit token, the first green Actions run (`wrangler pages deploy … --project-name=getcowoka-com`) **creates** the project and uploads the site. You do not need a template, Workers starter, or Git connect.
+
+**If you prefer the dashboard** (optional):
+
+1. **Workers & Pages** → **Create** / **Create application**.
+2. Avoid framework **templates** and **Connect to Git**.
+3. Choose **Get started** → **Drag and drop your files** (Direct Upload), *or* **Pages** → **Use direct upload** if that label appears.
+4. Project / application name: **`getcowoka-com`**.
+5. You can drag the repo folder once, or cancel/leave empty and let Actions deploy.
 
 ### 2. Create a Cloudflare API token (least privilege)
 
 Pages Direct Upload (`wrangler pages deploy`) calls **account-level** APIs
 (`/accounts/<id>/pages/projects/...`), not zone/DNS APIs. A token limited to the
-**getcowoka.com** zone cannot authorize that route and typically fails with
-**Authentication error [code: 10000]** — even if DNS for that domain is in the same account.
+**getcowoka.com** zone cannot authorize that route and fails with
+**Authentication error [code: 10000]** — that is what broke the failed Actions run.
 
-**Preferred token type:** **Account API token** (service principal; survives user
-leaving). Official Pages docs use this path; Pages is compatible with account-owned
-tokens. **User API tokens** also work if you prefer creating them under your profile.
+Cloudflare’s [Direct Upload CI guide](https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/) creates the token on the **Account API tokens** page. A **User API token** (My Profile → API Tokens → Custom token) with the same permission also works.
 
-| | Account API token (preferred) | User API token (also OK) |
+| | Account API token (docs path) | User API token (also OK) |
 |--|------------------------------|---------------------------|
 | Where | Dashboard → **Manage account** → **Account API tokens** | [My Profile → API Tokens](https://dash.cloudflare.com/profile/api-tokens) |
-| Prefix | often `cfat_…` | often `cfut_…` |
+| Create | **Create Token** → **Custom token** → **Get started** | **Create Token** → **Custom token** → **Get started** |
 | Who can create | Super Admin or member with API Token Provisioning | Any member (limited to their own permissions) |
 
 #### Permissions (only this)
@@ -79,23 +91,23 @@ tokens. **User API tokens** also work if you prefer creating them under your pro
 |-------|------------------------------|--------|
 | **Account** | **Cloudflare Pages** | **Edit** |
 
-That is the same permission Cloudflare’s [Direct Upload CI guide](https://developers.cloudflare.com/pages/how-to/use-direct-upload-with-continuous-integration/) and [Pages REST API](https://developers.cloudflare.com/pages/configuration/api/) ask for (`Pages Write` in API docs).
+That matches the CI guide and the [Pages REST API](https://developers.cloudflare.com/pages/configuration/api/) (`Pages Write`). No other permission is required when `CLOUDFLARE_ACCOUNT_ID` is already set in GitHub.
 
-**Do not add** (and you do **not** need them for this workflow):
+**Do not add:**
 
 | Avoid | Why |
 |-------|-----|
-| **Account Settings → Edit** | Far too broad (membership / account config). Refuse this. |
-| **Account Settings → Read** | Not required here: the Actions workflow already passes `CLOUDFLARE_ACCOUNT_ID`, so Wrangler does not need to list/lookup accounts. Some dashboards only show **Edit** for Account Settings — skip the whole permission. |
-| **Account Custom Pages** Read/Edit | Different product (Error Pages), not Cloudflare Pages. |
-| Any **Zone** / DNS / Workers Routes permissions | Not used by `pages deploy`. |
-| Restricting the token to the **getcowoka.com** domain / one zone | Zone scoping does not limit Pages projects; it often blocks the account Pages API instead. |
+| **Account Settings → Edit** | Too broad. Refuse this. |
+| **Account Settings → Read** | Not needed (account id is in the secret). Some UIs only offer **Edit** — skip Account Settings entirely. |
+| **Account Custom Pages** Read/Edit | Error Pages product — not Cloudflare Pages. |
+| Any **Zone** / DNS / Workers Routes permissions | Unused by `pages deploy`. |
+| Restrict token to zone / domain **getcowoka.com** | Zone scoping blocks the account Pages API → code **10000**. |
 
 #### Resources
 
-1. **Account resources:** include **only** the Cloudflare account that owns the Pages project `getcowoka-com`.
-2. **Zone resources:** leave unset / do not add a zone include. You do **not** need “All zones” and you must **not** pin the policy to `getcowoka.com` for deploy.
-3. Create token → copy once → put it in the GitHub secret (below).
+1. **Account resources:** include **only** the account that owns the Pages project.
+2. **Zone resources:** leave unset / do not add a zone include. Do **not** pin the policy to `getcowoka.com`.
+3. Create token → copy once → put it in the GitHub secret (below). Revoke the old zone-scoped token.
 
 #### Quick verify (optional)
 
@@ -105,33 +117,35 @@ curl -sS -o /dev/null -w "%{http_code}\n" \
   "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/getcowoka-com"
 ```
 
-Expect **200**. **401/403** with auth errors → wrong permission name, zone-restricted policy, or wrong account id.
+Expect **200** (project exists) or **404** (token works; create project in step 1). **401/403** / auth errors → wrong permission, zone-restricted policy, or wrong account id.
 
 Find **Account ID**: any zone Overview → API section, or the hex segment in `dash.cloudflare.com/<account_id>/…`.
 
 ### 3. GitHub repo secrets
 
-Repo → **Settings** → **Secrets and variables** → **Actions**:
+Repo → **Settings** → **Secrets and variables** → **Actions** (repository secrets — not Environments):
 
 | Secret | Value |
 |--------|--------|
-| `CLOUDFLARE_API_TOKEN` | Token from step 2 |
+| `CLOUDFLARE_API_TOKEN` | New token from step 2 |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare account ID |
 
-Project name is hardcoded in `.github/workflows/deploy-pages.yml` as `getcowoka-com` (not a secret).
+`--project-name=getcowoka-com` is hardcoded in `.github/workflows/deploy-pages.yml` (not a secret).
 
 ### 4. Deploy
 
-Push to `main` (or run **Actions** → **Deploy to Cloudflare Pages** → **Run workflow**). No build step — the workflow deploys the repo root with `wrangler pages deploy . --project-name=getcowoka-com`.
+Push to `main` (or **Actions** → **Deploy to Cloudflare Pages** → **Run workflow**). No build step — deploys repo root with:
+
+`wrangler pages deploy . --project-name=getcowoka-com`
 
 ### 5. Custom domain + DNS (human)
 
-In the Pages project → **Custom domains** → add `getcowoka.com` (and `www` if desired). At your DNS host (or Cloudflare DNS):
+In Pages project **`getcowoka-com`** → **Custom domains** → add **`getcowoka.com`** (and `www` if desired). At your DNS host (or Cloudflare DNS):
 
 - Apex: CNAME flattening / ALIAS to the Pages target Cloudflare shows, **or** use Cloudflare as nameserver and attach the domain in Pages (recommended).
 - `www` → CNAME to `getcowoka.com` or the Pages hostname; optionally redirect www → apex in Pages.
 
-Wait for HTTPS (automatic on Pages). Until DNS is live, the draft is still valid in-repo and on `*.pages.dev`; do not auto-close store/privacy issues until https://getcowoka.com/privacy/ resolves.
+Wait for HTTPS (automatic on Pages). Until DNS is live, the draft is still valid in-repo and on `getcowoka-com.pages.dev`; do not auto-close store/privacy issues until https://getcowoka.com/privacy/ resolves.
 
 ## Waitlist (not implemented)
 
