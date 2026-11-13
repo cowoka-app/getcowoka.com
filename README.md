@@ -60,7 +60,7 @@ Cloudflare **does not allow dots** in Pages project names (only lowercase letter
 
 Cloudflare’s UI often says **Create application** — that is just a **Pages project**, not a separate app product. Name it **`getcowoka-com`** (must match the workflow; dots are invalid).
 
-**Easiest: skip the dashboard.** With a valid Pages Edit token, the first green Actions run (`wrangler pages deploy … --project-name=getcowoka-com`) **creates** the project and uploads the site. You do not need a template, Workers starter, or Git connect.
+**Easiest: skip the dashboard.** The workflow runs `wrangler pages project create getcowoka-com` (ignores “already exists”), then `pages deploy`. You do not need a template, Workers starter, or Git connect.
 
 **If you prefer the dashboard** (optional):
 
@@ -134,9 +134,9 @@ Repo → **Settings** → **Secrets and variables** → **Actions** (repository 
 
 ### 4. Deploy
 
-Push to `main` (or **Actions** → **Deploy to Cloudflare Pages** → **Run workflow**). No build step — deploys repo root with:
+Push to `main` (or **Actions** → **Deploy to Cloudflare Pages** → **Run workflow**). No build step — ensures project `getcowoka-com` exists, then:
 
-`wrangler pages deploy . --project-name=getcowoka-com`
+`wrangler pages deploy . --project-name=getcowoka-com --branch=main`
 
 ### 5. Custom domain + DNS (human)
 

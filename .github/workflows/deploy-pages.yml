@@ -23,6 +23,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
+      # Wrangler no longer auto-creates Pages projects on deploy.
+      # First run creates getcowoka-com; later runs fail "already exists" — ignore that.
+      - name: Ensure Pages project exists
+        continue-on-error: true
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create getcowoka-com --production-branch=main
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v4
         with:
@@ -30,6 +40,6 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           # Static HTML at repo root — no build step.
           # Project name must be getcowoka-com (CF disallows dots). Public URL is custom domain getcowoka.com.
-          command: pages deploy . --project-name=getcowoka-com
+          command: pages deploy . --project-name=getcowoka-com --branch=main
           # Optional: create a GitHub Deployment record for this run.
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
