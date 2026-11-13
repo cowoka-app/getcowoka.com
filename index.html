@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Cowoka — Coming soon</title>
+    <meta
+      name="description"
+      content="Cowoka — find coworking spots, join co-work sessions, and meet your local remote-work community. Coming soon."
+    />
+    <link rel="canonical" href="https://getcowoka.com/" />
+    <meta name="theme-color" content="#e8f0ec" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Literata:opsz,wght@7..72,400;7..72,600&family=Syne:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/assets/css/site.css" />
+  </head>
+  <body>
+    <div class="site-shell">
+      <nav class="site-nav" aria-label="Primary">
+        <a class="wordmark" href="/">Cowoka</a>
+        <div class="nav-links">
+          <a href="/privacy/">Privacy</a>
+          <a href="/terms/">Terms</a>
+        </div>
+      </nav>
+
+      <main class="hero">
+        <p class="hero-brand" aria-label="Cowoka">Cowoka</p>
+        <h1>Find your spot. Work alongside people nearby.</h1>
+        <p class="lede">
+          Discover coworking venues, join co-work sessions, and connect with the
+          local remote-work community. We’re getting ready.
+        </p>
+        <div class="hero-cta">
+          <a class="btn btn-ghost" href="/privacy/">Privacy</a>
+          <a class="btn btn-ghost" href="/terms/">Terms</a>
+        </div>
+
+        <!--
+          WAITLIST (not live yet)
+          Plug in later: email field → POST /api/waitlist (Cloudflare Worker + KV)
+          or Formspree / Buttondown. See README § Waitlist.
+          Keep this region for a single email + submit control.
+        -->
+        <div class="waitlist-slot" data-waitlist-slot hidden aria-hidden="true">
+          <p class="hint">Beta waitlist — coming later</p>
+        </div>
+      </main>
+
+      <footer class="site-footer">
+        <span>© <span id="y"></span> Cowoka</span>
+        <div class="footer-links">
+          <a href="/privacy/">Privacy</a>
+          <a href="/terms/">Terms</a>
+        </div>
+      </footer>
+    </div>
+    <script>
+      document.getElementById("y").textContent = String(new Date().getFullYear());
+    </script>
+  </body>
+</html>

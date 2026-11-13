@@ -1,0 +1,312 @@
+/* Cowoka marketing — getcowoka.com
+   Direction: soft coastal mist + eucalyptus ink. Light only. */
+
+:root {
+  --bg-0: #f3f6f4;
+  --bg-1: #e8f0ec;
+  --bg-2: #faf8f5;
+  --ink: #1a2420;
+  --ink-soft: #3d4a44;
+  --muted: #5e6b65;
+  --line: rgba(26, 36, 32, 0.12);
+  --accent: #2a6b58;
+  --accent-soft: #3d8f76;
+  --surface: rgba(255, 255, 255, 0.55);
+  --max: 40rem;
+  --pad: clamp(1.25rem, 4vw, 2rem);
+  --font-display: "Syne", "Avenir Next", "Segoe UI", sans-serif;
+  --font-body: "Literata", "Iowan Old Style", "Palatino Linotype", Palatino, serif;
+  --font-ui: "Syne", "Avenir Next", "Segoe UI", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: light;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100dvh;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  background-color: var(--bg-0);
+  background-image:
+    radial-gradient(120% 80% at 12% -10%, var(--bg-1) 0%, transparent 55%),
+    radial-gradient(90% 70% at 100% 0%, #dfece6 0%, transparent 50%),
+    radial-gradient(80% 60% at 80% 100%, var(--bg-2) 0%, transparent 45%),
+    linear-gradient(165deg, var(--bg-0) 0%, #eef3f0 45%, var(--bg-2) 100%);
+  background-attachment: fixed;
+}
+
+/* Subtle grain — atmosphere without clutter */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  z-index: 0;
+}
+
+a {
+  color: var(--accent);
+  text-underline-offset: 0.15em;
+}
+
+a:hover {
+  color: var(--accent-soft);
+}
+
+.site-shell {
+  position: relative;
+  z-index: 1;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+.site-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem var(--pad);
+  max-width: 72rem;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.site-nav a.wordmark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.site-nav .nav-links {
+  display: flex;
+  gap: 1.25rem;
+  font-family: var(--font-ui);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.site-nav .nav-links a {
+  color: var(--ink-soft);
+  text-decoration: none;
+}
+
+.site-nav .nav-links a:hover {
+  color: var(--accent);
+}
+
+/* —— Coming soon hero —— */
+.hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: clamp(2rem, 8vh, 5rem) var(--pad) 3rem;
+  width: 100%;
+}
+
+.hero-brand {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: clamp(3.25rem, 12vw, 5.5rem);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  color: var(--ink);
+  margin: 0 0 1.5rem;
+}
+
+.hero h1 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(1.35rem, 3.5vw, 1.75rem);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0 0 0.85rem;
+  max-width: 22ch;
+}
+
+.hero .lede {
+  margin: 0 0 2rem;
+  color: var(--muted);
+  font-size: 1.05rem;
+  max-width: 34ch;
+}
+
+.hero-cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  align-items: center;
+  font-family: var(--font-ui);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.7rem 1.15rem;
+  border-radius: 999px;
+  font-family: var(--font-ui);
+  font-weight: 650;
+  font-size: 0.9rem;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: #f7faf8;
+}
+
+.btn-primary:hover {
+  background: var(--accent);
+  color: #f7faf8;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--ink-soft);
+  border-color: var(--line);
+}
+
+.btn-ghost:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* Waitlist slot — empty until wired; keeps layout stable */
+.waitlist-slot {
+  margin-top: 2.25rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  width: 100%;
+  max-width: 28rem;
+}
+
+.waitlist-slot .hint {
+  margin: 0;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* —— Legal pages —— */
+.legal {
+  flex: 1;
+  max-width: var(--max);
+  margin: 0 auto;
+  padding: 1.5rem var(--pad) 4rem;
+  width: 100%;
+}
+
+.legal h1 {
+  font-family: var(--font-display);
+  font-weight: 750;
+  font-size: clamp(1.75rem, 4vw, 2.25rem);
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  margin: 0 0 0.5rem;
+}
+
+.legal .sub {
+  margin: 0 0 1.5rem;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.notice {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  padding: 0.9rem 1.05rem;
+  margin: 0 0 2rem;
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+  backdrop-filter: blur(8px);
+}
+
+.notice strong {
+  color: var(--ink);
+}
+
+.legal h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: -0.02em;
+  margin: 2rem 0 0.55rem;
+}
+
+.legal p,
+.legal li {
+  color: var(--ink-soft);
+}
+
+.legal ul {
+  padding-left: 1.2rem;
+  margin: 0.5rem 0 0;
+}
+
+.legal li + li {
+  margin-top: 0.4rem;
+}
+
+.site-footer {
+  padding: 1.25rem var(--pad) 2rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.5rem;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--font-ui);
+  font-size: 0.8rem;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+}
+
+.site-footer a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--accent);
+}
+
+.footer-links {
+  display: flex;
+  gap: 1rem;
+}
+
+@media (max-width: 480px) {
+  .site-nav .nav-links {
+    gap: 0.85rem;
+  }
+}

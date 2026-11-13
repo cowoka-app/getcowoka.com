@@ -1,0 +1,4 @@
+# Cloudflare Pages — clean trailing-slash URLs (folder indexes already work)
+# Optional aliases without trailing slash
+/privacy /privacy/ 301
+/terms /terms/ 301
